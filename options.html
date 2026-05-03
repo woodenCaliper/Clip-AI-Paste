@@ -14,7 +14,6 @@
     #status { margin-left: 12px; color: #166534; }
     .subtle { margin-top:8px;color:#374151;font-size:13px; }
     #previewArea { min-height: 180px; background:#f9fafb; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
-    .toolbar { display:flex; gap:8px; align-items:center; margin-top:8px; }
   </style>
 </head>
 <body>
@@ -39,17 +38,13 @@
 
   <label>プロンプト<textarea id="prompt"></textarea></label>
 
-  <label>プレビュー用クリップボード内容<textarea id="previewInput" placeholder="ここに貼るか、下のボタンで現在のクリップボードを読み込んでください"></textarea></label>
-  <div class="toolbar">
-    <button id="loadClipboard" type="button">現在のクリップボードを読み込む</button>
-  </div>
 
   <label>AIへ最終送信されるプロンプト（プレビュー）
     <textarea id="previewArea" readonly></textarea>
   </label>
 
   <p class="subtle">OpenAI利用時に <code>429</code> が出る場合、課金上限・レート制限・モデル利用権限が原因のことがあります。</p>
-  <p class="subtle">※ このプレビューは、実際に送信するフォーマット（# 指示 / # 入力テキスト）をそのまま表示します。</p>
+  <p class="subtle">※ このプレビューの入力テキスト部分には、固定で「＜ここにクリップボードの内容＞」を表示します。</p>
 
   <p><a href="chrome://extensions/shortcuts" target="_blank" rel="noreferrer">ショートカット設定を開く</a></p>
 

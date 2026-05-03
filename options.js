@@ -8,30 +8,19 @@ function setStatus(message, color = '#166534') {
   setStatus.timer = setTimeout(() => { status.textContent = ''; }, 3500);
 }
 
+const PREVIEW_CLIPBOARD_PLACEHOLDER = '＜ここにクリップボードの内容＞';
+
 function buildPrompt(prompt, inputText) {
   return `# 指示\n\n${prompt}\n\n# 入力テキスト\n\n${inputText}`;
 }
 
 function updatePreview() {
   const prompt = document.getElementById('prompt')?.value || '';
-  const previewInput = document.getElementById('previewInput')?.value || '';
   const previewArea = document.getElementById('previewArea');
   if (!previewArea) return;
-  previewArea.value = buildPrompt(prompt, previewInput);
+  previewArea.value = buildPrompt(prompt, PREVIEW_CLIPBOARD_PLACEHOLDER);
 }
 
-async function loadClipboardForPreview() {
-  try {
-    const text = await navigator.clipboard.readText();
-    const input = document.getElementById('previewInput');
-    if (!input) return;
-    input.value = text || '';
-    updatePreview();
-    setStatus('クリップボード内容を読み込みました。');
-  } catch {
-    setStatus('クリップボードを読み込めませんでした。手動で貼り付けてください。', '#b91c1c');
-  }
-}
 
 function validateOpenAIModel() {
   const provider = document.getElementById('aiProvider')?.value;
@@ -75,6 +64,4 @@ async function save() {
 document.getElementById('save').addEventListener('click', save);
 document.getElementById('openaiModel').addEventListener('blur', validateOpenAIModel);
 document.getElementById('prompt').addEventListener('input', updatePreview);
-document.getElementById('previewInput').addEventListener('input', updatePreview);
-document.getElementById('loadClipboard').addEventListener('click', loadClipboardForPreview);
 restore();
