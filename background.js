@@ -74,12 +74,16 @@ function toPreview(text, max = 80) {
 async function debugStep(step, details = null) {
   if (!DEBUG_STEP_POPUP) return;
   const body = details ? `${step}\n${JSON.stringify(details)}` : step;
-  await chrome.notifications.create({
-    type: 'basic',
-    iconUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO7Zq1cAAAAASUVORK5CYII=',
-    title: 'Clip AI Paste / Debug',
-    message: body.slice(0, 300)
-  });
+  try {
+    await chrome.notifications.create({
+      type: 'basic',
+      iconUrl: chrome.runtime.getURL('icon.png'),
+      title: 'Clip AI Paste / Debug',
+      message: body.slice(0, 300)
+    });
+  } catch {
+    // 通知アイコン取得失敗時はデバッグ表示のみ継続
+  }
   await showDebugOverlay(body);
 }
 
