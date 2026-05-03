@@ -10,6 +10,7 @@ const DEFAULTS = {
 };
 
 let latestRunId = 0;
+const DEBUG_STEP_POPUP = true;
 
 chrome.runtime.onInstalled.addListener(async () => {
   const existing = await chrome.storage.sync.get(Object.keys(DEFAULTS));
@@ -29,14 +30,19 @@ chrome.commands.onCommand.addListener(async (command) => {
 async function runPipeline(runId) {
   try {
     await setBusy(true);
+    await debugStep('処理開始', { runId });
     const clipboardText = await readClipboardText();
+    await debugStep('クリップボード読み取り完了', { preview: toPreview(clipboardText) });
     if (!clipboardText || !clipboardText.trim()) return;
 
     if (runId !== latestRunId) return;
 
     const settings = await chrome.storage.sync.get(Object.keys(DEFAULTS));
+    await debugStep('設定読み込み完了', { provider: settings.aiProvider });
     const payload = buildPrompt(settings.prompt || '', clipboardText);
+    await debugStep('AIリクエスト作成完了', { payloadPreview: toPreview(payload) });
     const aiText = await askAI(settings, payload, runId);
+    await debugStep('AI応答受信完了', { preview: toPreview(aiText) });
 
     if (runId !== latestRunId) return;
     if (!aiText || !aiText.trim()) {
@@ -45,13 +51,34 @@ async function runPipeline(runId) {
     }
 
     await writeClipboardText(aiText);
+    await debugStep('クリップボード書き込み完了', { preview: toPreview(aiText) });
     if (runId !== latestRunId) return;
     await pasteToActiveTab(aiText);
+    await debugStep('アクティブタブへの貼り付け完了');
   } catch (error) {
+    await debugStep('エラー発生', { message: error?.message || 'unknown error' });
     notifyError(error?.message || '実行中にエラーが発生しました。');
   } finally {
     await setBusy(false);
+    await debugStep('処理終了');
   }
+}
+
+function toPreview(text, max = 80) {
+  const src = String(text || '').replace(/\s+/g, ' ').trim();
+  if (!src) return '(empty)';
+  return src.length > max ? `${src.slice(0, max)}...` : src;
+}
+
+async function debugStep(step, details = null) {
+  if (!DEBUG_STEP_POPUP) return;
+  const body = details ? `${step}\n${JSON.stringify(details)}` : step;
+  await chrome.notifications.create({
+    type: 'basic',
+    iconUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO7Zq1cAAAAASUVORK5CYII=',
+    title: 'Clip AI Paste / Debug',
+    message: body.slice(0, 300)
+  });
 }
 
 function buildPrompt(prompt, inputText) {
