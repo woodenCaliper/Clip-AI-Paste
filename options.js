@@ -8,6 +8,20 @@ function setStatus(message, color = '#166534') {
   setStatus.timer = setTimeout(() => { status.textContent = ''; }, 3500);
 }
 
+const PREVIEW_CLIPBOARD_PLACEHOLDER = '＜ここにクリップボードの内容＞';
+
+function buildPrompt(prompt, inputText) {
+  return `"入力テキスト"の内容に対して下記の指示を適用してください\n\n# 指示\n${prompt}\n\n# 入力テキスト\n${inputText}`;
+}
+
+function updatePreview() {
+  const prompt = document.getElementById('prompt')?.value || '';
+  const previewArea = document.getElementById('previewArea');
+  if (!previewArea) return;
+  previewArea.value = buildPrompt(prompt, PREVIEW_CLIPBOARD_PLACEHOLDER);
+}
+
+
 function validateOpenAIModel() {
   const provider = document.getElementById('aiProvider')?.value;
   const model = (document.getElementById('openaiModel')?.value || '').trim();
@@ -28,6 +42,7 @@ async function restore() {
     const el = document.getElementById(k);
     if (el) el.value = data[k] || '';
   }
+  updatePreview();
 }
 
 async function save() {
@@ -48,4 +63,5 @@ async function save() {
 
 document.getElementById('save').addEventListener('click', save);
 document.getElementById('openaiModel').addEventListener('blur', validateOpenAIModel);
+document.getElementById('prompt').addEventListener('input', updatePreview);
 restore();

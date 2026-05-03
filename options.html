@@ -12,6 +12,8 @@
     .row { display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; }
     button { margin-top: 16px; padding: 8px 14px; }
     #status { margin-left: 12px; color: #166534; }
+    .subtle { margin-top:8px;color:#374151;font-size:13px; }
+    #previewArea { min-height: 180px; background:#f9fafb; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
   </style>
 </head>
 <body>
@@ -34,11 +36,15 @@
     <label>Claude モデル名<input id="claudeModel" type="text" /></label>
   </div>
 
-  <label>プロンプト<textarea id="prompt"></textarea></label>
+  <label>指示プロンプト<textarea id="prompt"></textarea></label>
 
-  <p style="margin-top:8px;color:#374151;font-size:13px;">
-    OpenAI利用時に <code>429</code> が出る場合、課金上限・レート制限・モデル利用権限が原因のことがあります。
-  </p>
+
+  <label>AIへ最終送信されるプロンプト（プレビュー）
+    <textarea id="previewArea" readonly></textarea>
+  </label>
+
+  <p class="subtle">OpenAI利用時に <code>429</code> が出る場合、課金上限・レート制限・モデル利用権限が原因のことがあります。</p>
+  <p class="subtle">※ このプレビューは実際の送信フォーマットを表示し、入力テキスト部分は固定で「＜ここにクリップボードの内容＞」を表示します。</p>
 
   <p><a href="chrome://extensions/shortcuts" target="_blank" rel="noreferrer">ショートカット設定を開く</a></p>
 
