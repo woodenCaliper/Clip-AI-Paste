@@ -101,3 +101,12 @@ AI には次の形式で送信します。
 - Manifest: `manifest.json`
 - バックグラウンド処理: `background.js`
 - 設定画面: `options.html`, `options.js`
+
+---
+
+## プライバシーポリシー
+
+- リポジトリ内ポリシー: [`PRIVACY.md`](./PRIVACY.md)
+- Chrome Web Store 用公開URL（GitHub Pages想定）: `https://<YOUR_ACCOUNT>.github.io/<YOUR_REPOSITORY>/privacy/`
+
+> 公開前に `<YOUR_ACCOUNT>` と `<YOUR_REPOSITORY>` を実際の値へ置き換えてください。`docs/privacy.md` を公開ページとして利用できます。
