@@ -154,6 +154,18 @@ async function showDebugOverlay(message) {
   }
 }
 
+
+function formatOpenAIError(status, detail = '') {
+  const normalized = String(detail || '');
+  if (status === 429) {
+    if (normalized.includes('You exceeded your current quota')) {
+      return 'OpenAI APIエラー: 429。利用上限を超えています。OpenAIのBilling/Usageで上限と支払い設定を確認してください。';
+    }
+    return `OpenAI APIエラー: 429。課金上限・無料枠超過・レート制限・モデル利用権限不足の可能性があります。${normalized ? ` 詳細: ${normalized}` : ''}`;
+  }
+  return `OpenAI APIエラー: ${status}${normalized ? ` (${normalized})` : ''}`;
+}
+
 function buildPrompt(prompt, inputText) {
   return `# 指示\n\n${prompt}\n\n# 入力テキスト\n\n${inputText}`;
 }
@@ -191,12 +203,7 @@ async function callOpenAI(apiKey, model, content) {
       // JSON以外のエラー本文は無視
     }
 
-    if (res.status === 429) {
-      const hint = '課金上限・無料枠超過・レート制限・モデル利用権限不足の可能性があります。';
-      throw new Error(`OpenAI APIエラー: 429。${hint}${detail ? ` 詳細: ${detail}` : ''}`);
-    }
-
-    throw new Error(`OpenAI APIエラー: ${res.status}${detail ? ` (${detail})` : ''}`);
+    throw new Error(formatOpenAIError(res.status, detail));
   }
 
   const data = await res.json();
