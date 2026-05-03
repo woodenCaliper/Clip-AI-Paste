@@ -10,8 +10,8 @@ const DEFAULTS = {
 };
 
 let latestRunId = 0;
-const DEBUG_STEP_POPUP = true;
-const DEBUG_USE_ALERT = true;
+const DEBUG_STEP_POPUP = false;
+const DEBUG_USE_ALERT = false;
 
 chrome.runtime.onInstalled.addListener(async () => {
   const existing = await chrome.storage.sync.get(Object.keys(DEFAULTS));
