@@ -10,8 +10,8 @@ const DEFAULTS = {
 };
 
 let latestRunId = 0;
-const DEBUG_STEP_POPUP = true;
-const DEBUG_USE_ALERT = true;
+const DEBUG_STEP_POPUP = false;
+const DEBUG_USE_ALERT = false;
 
 chrome.runtime.onInstalled.addListener(async () => {
   const existing = await chrome.storage.sync.get(Object.keys(DEFAULTS));
@@ -74,12 +74,16 @@ function toPreview(text, max = 80) {
 async function debugStep(step, details = null) {
   if (!DEBUG_STEP_POPUP) return;
   const body = details ? `${step}\n${JSON.stringify(details)}` : step;
-  await chrome.notifications.create({
-    type: 'basic',
-    iconUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO7Zq1cAAAAASUVORK5CYII=',
-    title: 'Clip AI Paste / Debug',
-    message: body.slice(0, 300)
-  });
+  try {
+    await chrome.notifications.create({
+      type: 'basic',
+      iconUrl: chrome.runtime.getURL('icon.png'),
+      title: 'Clip AI Paste / Debug',
+      message: body.slice(0, 300)
+    });
+  } catch {
+    // 通知アイコン取得失敗時はデバッグ表示のみ継続
+  }
   await showDebugOverlay(body);
 }
 
@@ -150,6 +154,18 @@ async function showDebugOverlay(message) {
   }
 }
 
+
+function formatOpenAIError(status, detail = '') {
+  const normalized = String(detail || '');
+  if (status === 429) {
+    if (normalized.includes('You exceeded your current quota')) {
+      return 'OpenAI APIエラー: 429。利用上限を超えています。OpenAIのBilling/Usageで上限と支払い設定を確認してください。';
+    }
+    return `OpenAI APIエラー: 429。課金上限・無料枠超過・レート制限・モデル利用権限不足の可能性があります。${normalized ? ` 詳細: ${normalized}` : ''}`;
+  }
+  return `OpenAI APIエラー: ${status}${normalized ? ` (${normalized})` : ''}`;
+}
+
 function buildPrompt(prompt, inputText) {
   return `# 指示\n\n${prompt}\n\n# 入力テキスト\n\n${inputText}`;
 }
@@ -170,12 +186,26 @@ async function askAI(settings, payload, runId) {
 
 async function callOpenAI(apiKey, model, content) {
   if (!apiKey) throw new Error('OpenAI APIキーが未設定です。');
+  if (!model || !model.trim()) throw new Error('OpenAIモデル名が未設定です。');
+
   const res = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({ model, messages: [{ role: 'user', content }] })
+    body: JSON.stringify({ model: model.trim(), messages: [{ role: 'user', content }] })
   });
-  if (!res.ok) throw new Error(`OpenAI APIエラー: ${res.status}`);
+
+  if (!res.ok) {
+    let detail = '';
+    try {
+      const err = await res.json();
+      detail = err?.error?.message || '';
+    } catch {
+      // JSON以外のエラー本文は無視
+    }
+
+    throw new Error(formatOpenAIError(res.status, detail));
+  }
+
   const data = await res.json();
   return data?.choices?.[0]?.message?.content || '';
 }
