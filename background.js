@@ -79,6 +79,62 @@ async function debugStep(step, details = null) {
     title: 'Clip AI Paste / Debug',
     message: body.slice(0, 300)
   });
+  await showDebugOverlay(body);
+}
+
+async function showDebugOverlay(message) {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (!tab?.id) return;
+  try {
+    await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      world: 'MAIN',
+      args: [message.slice(0, 300)],
+      func: (text) => {
+        const rootId = '__clip_ai_paste_debug_overlay__';
+        let root = document.getElementById(rootId);
+        if (!root) {
+          root = document.createElement('div');
+          root.id = rootId;
+          root.style.position = 'fixed';
+          root.style.top = '12px';
+          root.style.right = '12px';
+          root.style.zIndex = '2147483647';
+          root.style.display = 'flex';
+          root.style.flexDirection = 'column';
+          root.style.gap = '8px';
+          root.style.pointerEvents = 'none';
+          document.documentElement.appendChild(root);
+        }
+
+        const item = document.createElement('div');
+        item.textContent = `[Clip AI Debug] ${text}`;
+        item.style.maxWidth = '420px';
+        item.style.whiteSpace = 'pre-wrap';
+        item.style.wordBreak = 'break-word';
+        item.style.fontSize = '12px';
+        item.style.lineHeight = '1.4';
+        item.style.color = '#fff';
+        item.style.background = 'rgba(17, 24, 39, 0.92)';
+        item.style.border = '1px solid rgba(255, 255, 255, 0.2)';
+        item.style.borderRadius = '8px';
+        item.style.padding = '8px 10px';
+        item.style.boxShadow = '0 6px 20px rgba(0,0,0,0.35)';
+        root.appendChild(item);
+
+        if (root.childElementCount > 6) {
+          root.removeChild(root.firstElementChild);
+        }
+
+        setTimeout(() => {
+          item.remove();
+          if (!root.childElementCount) root.remove();
+        }, 6000);
+      }
+    });
+  } catch {
+    // chrome:// など script 注入不可ページでは無視
+  }
 }
 
 function buildPrompt(prompt, inputText) {
