@@ -11,7 +11,7 @@ function setStatus(message, color = '#166534') {
 const PREVIEW_CLIPBOARD_PLACEHOLDER = '＜ここにクリップボードの内容＞';
 
 function buildPrompt(prompt, inputText) {
-  return `# 指示\n\n${prompt}\n\n# 入力テキスト\n\n${inputText}`;
+  return `"入力テキスト"の内容に対して下記の指示を適用してください\n\n# 指示\n${prompt}\n\n# 入力テキスト\n${inputText}`;
 }
 
 function updatePreview() {
