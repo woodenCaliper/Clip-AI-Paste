@@ -11,6 +11,7 @@ const DEFAULTS = {
 
 let latestRunId = 0;
 const DEBUG_STEP_POPUP = true;
+const DEBUG_USE_ALERT = true;
 
 chrome.runtime.onInstalled.addListener(async () => {
   const existing = await chrome.storage.sync.get(Object.keys(DEFAULTS));
@@ -86,6 +87,18 @@ async function showDebugOverlay(message) {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (!tab?.id) return;
   try {
+    if (DEBUG_USE_ALERT) {
+      await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        world: 'MAIN',
+        args: [message.slice(0, 200)],
+        func: (text) => {
+          alert(`[Clip AI Debug]\n${text}`);
+        }
+      });
+      return;
+    }
+
     await chrome.scripting.executeScript({
       target: { tabId: tab.id },
       world: 'MAIN',
