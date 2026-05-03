@@ -174,12 +174,31 @@ async function askAI(settings, payload, runId) {
 
 async function callOpenAI(apiKey, model, content) {
   if (!apiKey) throw new Error('OpenAI APIキーが未設定です。');
+  if (!model || !model.trim()) throw new Error('OpenAIモデル名が未設定です。');
+
   const res = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({ model, messages: [{ role: 'user', content }] })
+    body: JSON.stringify({ model: model.trim(), messages: [{ role: 'user', content }] })
   });
-  if (!res.ok) throw new Error(`OpenAI APIエラー: ${res.status}`);
+
+  if (!res.ok) {
+    let detail = '';
+    try {
+      const err = await res.json();
+      detail = err?.error?.message || '';
+    } catch {
+      // JSON以外のエラー本文は無視
+    }
+
+    if (res.status === 429) {
+      const hint = '課金上限・無料枠超過・レート制限・モデル利用権限不足の可能性があります。';
+      throw new Error(`OpenAI APIエラー: 429。${hint}${detail ? ` 詳細: ${detail}` : ''}`);
+    }
+
+    throw new Error(`OpenAI APIエラー: ${res.status}${detail ? ` (${detail})` : ''}`);
+  }
+
   const data = await res.json();
   return data?.choices?.[0]?.message?.content || '';
 }
