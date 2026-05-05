@@ -184,20 +184,27 @@ function validateSettings(settings) {
   return null;
 }
 
+async function findInjectableTab() {
+  const [active] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (active?.id && active.url && /^https?:/.test(active.url)) return active;
+  const [fallback] = await chrome.tabs.query({ currentWindow: true, url: ['http://*/*', 'https://*/*'] });
+  return fallback || null;
+}
+
 async function showErrorPopup(message) {
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  const tab = await findInjectableTab();
   if (!tab?.id) {
     notifyError(message);
     return;
   }
   try {
-    await chrome.scripting.executeScript({
+    const results = await chrome.scripting.executeScript({
       target: { tabId: tab.id },
       world: 'MAIN',
       args: [message],
       func: (text) => {
         const rootId = '__clip_ai_paste_error_popup__';
-        if (document.getElementById(rootId)) return;
+        if (document.getElementById(rootId)) return true;
 
         const popup = document.createElement('div');
         popup.id = rootId;
@@ -238,8 +245,11 @@ async function showErrorPopup(message) {
         document.documentElement.appendChild(popup);
 
         setTimeout(() => popup.remove(), 8000);
+        return true;
       }
     });
+    // CSP 等でスクリプトが実行されなかった場合は Chrome 通知にフォールバック
+    if (!results?.[0]?.result) notifyError(message);
   } catch {
     notifyError(message);
   }
@@ -399,7 +409,7 @@ async function setBusy(busy) {
 function notifyError(message) {
   chrome.notifications.create({
     type: 'basic',
-    iconUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO7Zq1cAAAAASUVORK5CYII=',
+    iconUrl: chrome.runtime.getURL('icon128.png'),
     title: 'Clip AI Paste',
     message
   });
