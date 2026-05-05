@@ -198,13 +198,13 @@ async function showErrorPopup(message) {
     return;
   }
   try {
-    await chrome.scripting.executeScript({
+    const results = await chrome.scripting.executeScript({
       target: { tabId: tab.id },
       world: 'MAIN',
       args: [message],
       func: (text) => {
         const rootId = '__clip_ai_paste_error_popup__';
-        if (document.getElementById(rootId)) return;
+        if (document.getElementById(rootId)) return true;
 
         const popup = document.createElement('div');
         popup.id = rootId;
@@ -245,8 +245,11 @@ async function showErrorPopup(message) {
         document.documentElement.appendChild(popup);
 
         setTimeout(() => popup.remove(), 8000);
+        return true;
       }
     });
+    // CSP 等でスクリプトが実行されなかった場合は Chrome 通知にフォールバック
+    if (!results?.[0]?.result) notifyError(message);
   } catch {
     notifyError(message);
   }
