@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Clip AI Paste",
   "version": "1.0.0",
-  "description": "Clipboard text -> AI -> paste in one shortcut.",
+  "description": "Read clipboard text, process it with AI (rewrite, translate, summarize), and paste the result—all with one shortcut.",
   "permissions": [
     "storage",
     "clipboardRead",
