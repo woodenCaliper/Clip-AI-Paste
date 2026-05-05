@@ -37,9 +37,6 @@ function validateOpenAIModel() {
     setStatus('OpenAIモデル名を入力してください。', '#b91c1c');
     return false;
   }
-  if (model === 'gpt-5.5') {
-    setStatus('注意: gpt-5.5 は利用権限やAPI対応状況によって 429/400 が出る場合があります。権限のあるモデル名を設定してください。', '#92400e');
-  }
   return true;
 }
 
