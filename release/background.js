@@ -32,15 +32,21 @@ async function runPipeline(runId) {
   try {
     await setBusy(true);
     await debugStep('処理開始', { runId });
+
+    const settings = await chrome.storage.sync.get(Object.keys(DEFAULTS));
+    await debugStep('設定読み込み完了', { provider: settings.aiProvider });
+    const validationError = validateSettings(settings);
+    if (validationError) {
+      await showErrorPopup(validationError);
+      return;
+    }
+
     const clipboardText = await readClipboardText();
     await debugStep('クリップボード読み取り完了', { preview: toPreview(clipboardText) });
     if (!clipboardText || !clipboardText.trim()) return;
 
     if (runId !== latestRunId) return;
-
-    const settings = await chrome.storage.sync.get(Object.keys(DEFAULTS));
-    await debugStep('設定読み込み完了', { provider: settings.aiProvider });
-    const payload = buildPrompt(settings.prompt || '', clipboardText);
+    const payload = buildPrompt(settings.prompt, clipboardText);
     await debugStep('AIリクエスト作成完了', { payloadPreview: toPreview(payload) });
     const aiText = await askAI(settings, payload, runId);
     await debugStep('AI応答受信完了', { preview: toPreview(aiText) });
@@ -154,6 +160,90 @@ async function showDebugOverlay(message) {
   }
 }
 
+
+function validateSettings(settings) {
+  const provider = settings.aiProvider;
+  if (!['openai', 'gemini', 'claude'].includes(provider)) {
+    return '使用AIが正しく設定されていません。オプションページで設定してください。';
+  }
+  if (provider === 'openai') {
+    if (!settings.openaiApiKey) return 'OpenAI APIキーが設定されていません。オプションページで設定してください。';
+    if (!settings.openaiModel) return 'OpenAIのモデル名が設定されていません。オプションページで設定してください。';
+  }
+  if (provider === 'gemini') {
+    if (!settings.geminiApiKey) return 'Gemini APIキーが設定されていません。オプションページで設定してください。';
+    if (!settings.geminiModel) return 'Geminiのモデル名が設定されていません。オプションページで設定してください。';
+  }
+  if (provider === 'claude') {
+    if (!settings.claudeApiKey) return 'Claude APIキーが設定されていません。オプションページで設定してください。';
+    if (!settings.claudeModel) return 'Claudeのモデル名が設定されていません。オプションページで設定してください。';
+  }
+  if (!settings.prompt || !settings.prompt.trim()) {
+    return '指示プロンプトが設定されていません。オプションページで設定してください。';
+  }
+  return null;
+}
+
+async function showErrorPopup(message) {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (!tab?.id) {
+    notifyError(message);
+    return;
+  }
+  try {
+    await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      world: 'MAIN',
+      args: [message],
+      func: (text) => {
+        const rootId = '__clip_ai_paste_error_popup__';
+        if (document.getElementById(rootId)) return;
+
+        const popup = document.createElement('div');
+        popup.id = rootId;
+        popup.style.cssText = [
+          'position:fixed', 'top:20px', 'left:50%', 'transform:translateX(-50%)',
+          'z-index:2147483647', 'min-width:280px', 'max-width:480px',
+          'background:#fff', 'border:2px solid #dc2626', 'border-radius:10px',
+          'box-shadow:0 8px 32px rgba(0,0,0,0.22)', 'padding:16px 20px',
+          'font-family:sans-serif', 'pointer-events:auto'
+        ].join(';');
+
+        const header = document.createElement('div');
+        header.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:10px';
+
+        const icon = document.createElement('span');
+        icon.textContent = '⚠️';
+        icon.style.fontSize = '18px';
+
+        const title = document.createElement('span');
+        title.textContent = 'Clip AI Paste — 設定エラー';
+        title.style.cssText = 'font-weight:700;font-size:14px;color:#dc2626;flex:1';
+
+        const closeBtn = document.createElement('button');
+        closeBtn.textContent = '✕';
+        closeBtn.style.cssText = [
+          'background:none', 'border:none', 'cursor:pointer',
+          'font-size:16px', 'color:#6b7280', 'padding:0 2px', 'line-height:1'
+        ].join(';');
+        closeBtn.addEventListener('click', () => popup.remove());
+
+        header.append(icon, title, closeBtn);
+
+        const body = document.createElement('p');
+        body.textContent = text;
+        body.style.cssText = 'margin:0;font-size:13px;color:#374151;line-height:1.5';
+
+        popup.append(header, body);
+        document.documentElement.appendChild(popup);
+
+        setTimeout(() => popup.remove(), 8000);
+      }
+    });
+  } catch {
+    notifyError(message);
+  }
+}
 
 function formatOpenAIError(status, detail = '') {
   const normalized = String(detail || '');
