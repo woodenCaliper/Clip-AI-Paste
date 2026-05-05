@@ -1,5 +1,12 @@
 const keys = ['aiProvider', 'openaiApiKey', 'geminiApiKey', 'claudeApiKey', 'openaiModel', 'geminiModel', 'claudeModel', 'prompt'];
 
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('shortcutLink')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
+  });
+});
+
 function setStatus(message, color = '#166534') {
   const status = document.getElementById('status');
   status.textContent = message;
