@@ -77,7 +77,7 @@ async function debugStep(step, details = null) {
   try {
     await chrome.notifications.create({
       type: 'basic',
-      iconUrl: chrome.runtime.getURL('icon.png'),
+      iconUrl: chrome.runtime.getURL('icon128.png'),
       title: 'Clip AI Paste / Debug',
       message: body.slice(0, 300)
     });
