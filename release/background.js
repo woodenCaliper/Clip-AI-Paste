@@ -184,8 +184,15 @@ function validateSettings(settings) {
   return null;
 }
 
+async function findInjectableTab() {
+  const [active] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (active?.id && active.url && /^https?:/.test(active.url)) return active;
+  const [fallback] = await chrome.tabs.query({ currentWindow: true, url: ['http://*/*', 'https://*/*'] });
+  return fallback || null;
+}
+
 async function showErrorPopup(message) {
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  const tab = await findInjectableTab();
   if (!tab?.id) {
     notifyError(message);
     return;
@@ -399,7 +406,7 @@ async function setBusy(busy) {
 function notifyError(message) {
   chrome.notifications.create({
     type: 'basic',
-    iconUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO7Zq1cAAAAASUVORK5CYII=',
+    iconUrl: chrome.runtime.getURL('icon128.png'),
     title: 'Clip AI Paste',
     message
   });
