@@ -1,6 +1,6 @@
 # Privacy Policy — Clip AI Paste
 
-Last updated: 2026-05-05
+Last updated: 2026-05-08
 
 ## Data Collection
 Clip AI Paste does not collect, store, or transmit any personal data to the developer.
