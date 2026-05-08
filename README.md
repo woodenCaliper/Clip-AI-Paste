@@ -87,7 +87,8 @@ AI には次の形式で送信します。
   - `clipboardRead` / `clipboardWrite`: クリップボード読取と AI 応答の書き戻しのため
   - `activeTab`: 現在のタブで貼り付け対象要素へ操作を行うため
   - `storage`: API キー、モデル名、プロンプト設定を保存するため
-- お問い合わせ先: 不具合報告・要望は本リポジトリの Issue へお願いします（`https://github.com/woodenCaliper/Clip-AI-Paste/issues`）。
+- お問い合わせ先: 不具合報告・要望は本リポジトリの [Issue](https://github.com/woodenCaliper/Clip-AI-Paste/issues) へお願いします。
+- プライバシーポリシー: [https://woodencaliper.github.io/Clip-AI-Paste/legal/privacy-policy.html](https://woodencaliper.github.io/Clip-AI-Paste/legal/privacy-policy.html)
 
 ---
 
