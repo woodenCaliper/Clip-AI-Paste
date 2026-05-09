@@ -17,6 +17,12 @@ function setStatus(message, color = '#166534', persist = false) {
   setStatus.timer = setTimeout(() => { status.textContent = ''; }, 3500);
 }
 
+function setHeaderValidation(message = '') {
+  const el = document.getElementById('headerValidation');
+  if (!el) return;
+  el.textContent = message;
+}
+
 const PREVIEW_CLIPBOARD_PLACEHOLDER = '＜ここにクリップボードの内容＞';
 
 function buildPrompt(prompt, inputText) {
@@ -77,18 +83,17 @@ function validateSelectedModel() {
   const modelKey = modelKeyByProvider[provider];
   if (!modelKey) return true;
 
+  const modelError = document.getElementById('modelError');
   const model = (document.getElementById(modelKey)?.value || '').trim();
   if (!model) {
-    setStatus(`${labelByProvider[provider]}モデル名を入力してください。`, '#b91c1c', true);
+    if (modelError) modelError.textContent = `${labelByProvider[provider]}モデル名を入力してください。`;
     return false;
   }
-  if (document.getElementById('status')?.textContent === `${labelByProvider[provider]}モデル名を入力してください。`) {
-    setStatus('');
-  }
+  if (modelError) modelError.textContent = '';
   return true;
 }
 
-function validateSelectedApiKey() {
+function validateSelectedApiKey(required = false) {
   const provider = document.getElementById('aiProvider')?.value;
   const apiKeyByProvider = {
     openai: 'openaiApiKey',
@@ -103,19 +108,19 @@ function validateSelectedApiKey() {
   const providerError = document.getElementById('providerError');
   const apiKey = (document.getElementById(apiKeyByProvider[provider])?.value || '').trim();
   if (!apiKey) {
-    const message = `${labelByProvider[provider]} APIキーを入力してください。`;
+    const message = required
+      ? `${labelByProvider[provider]} APIキーを入力してください。`
+      : `${labelByProvider[provider]} APIキーが未設定です。`;
     if (providerError) providerError.textContent = message;
-    setStatus(message, '#b91c1c', true);
-    return false;
+    setHeaderValidation(required ? message : '');
+    return !required;
   }
   if (providerError) providerError.textContent = '';
-  if (document.getElementById('status')?.textContent === `${labelByProvider[provider]} APIキーを入力してください。`) {
-    setStatus('');
-  }
+  setHeaderValidation('');
   return true;
 }
 
-async function validateShortcutKey() {
+async function validateShortcutKey(showHeaderError = false) {
   const shortcutError = document.getElementById('shortcutError');
   const commands = await chrome.commands.getAll();
   const runCommand = commands.find((command) => command.name === 'run-clip-ai-paste');
@@ -123,13 +128,10 @@ async function validateShortcutKey() {
   if (!hasShortcut) {
     const message = 'ショートカットキーを設定してください。';
     if (shortcutError) shortcutError.textContent = message;
-    setStatus(message, '#b91c1c', true);
+    if (showHeaderError) setHeaderValidation(message);
     return false;
   }
   if (shortcutError) shortcutError.textContent = '';
-  if (document.getElementById('status')?.textContent === 'ショートカットキーを設定してください。') {
-    setStatus('');
-  }
   return true;
 }
 
@@ -148,9 +150,16 @@ async function restore() {
 }
 
 async function save() {
-  if (!validateSelectedApiKey()) return;
-  if (!validateSelectedModel()) return;
-  if (!await validateShortcutKey()) return;
+  validateSelectedApiKey(false);
+  validateSelectedModel();
+  await validateShortcutKey(false);
+
+  const warningMessages = [
+    document.getElementById('providerError')?.textContent || '',
+    document.getElementById('modelError')?.textContent || '',
+    document.getElementById('shortcutError')?.textContent || ''
+  ].filter(Boolean);
+  setHeaderValidation(warningMessages[0] || '');
 
   const out = collectCurrentState();
   await chrome.storage.sync.set(out);

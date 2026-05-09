@@ -56,6 +56,7 @@
       <h1 class="header-title">Clip AI Paste 設定</h1>
       <div class="header-status">
         <span id="status"></span>
+        <span id="headerValidation" class="field-error"></span>
         <span id="dirtyState"></span>
         <button id="save" class="header-save" type="button">保存</button>
       </div>
@@ -74,6 +75,7 @@
     </select>
   </label>
   <p id="providerError" class="field-error" aria-live="polite"></p>
+  <p id="modelError" class="field-error" aria-live="polite"></p>
 
   <div class="provider-group" data-provider="openai">
     <p class="provider-title">OpenAI 設定</p>
