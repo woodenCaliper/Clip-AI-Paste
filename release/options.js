@@ -105,7 +105,7 @@ function validateSelectedApiKey(required = false) {
   if (!apiKey) {
     const message = required
       ? `${labelByProvider[provider]} APIキーを入力してください。`
-      : `${labelByProvider[provider]} APIキーが未設定です（保存はできます）。`;
+      : `${labelByProvider[provider]} APIキーが未設定です。`;
     if (providerError) providerError.textContent = message;
     setStatus(message, required ? '#b91c1c' : '#92400e', true);
     return !required;
