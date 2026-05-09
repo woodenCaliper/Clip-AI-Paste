@@ -150,21 +150,16 @@ async function restore() {
 }
 
 async function save() {
-  setHeaderValidation('');
   validateSelectedApiKey(false);
+  validateSelectedModel();
+  await validateShortcutKey(false);
 
-  if (!validateSelectedModel()) {
-    const provider = document.getElementById('aiProvider')?.value;
-    const labelByProvider = {
-      openai: 'OpenAI',
-      gemini: 'Gemini',
-      claude: 'Claude'
-    };
-    setHeaderValidation(`${labelByProvider[provider]}モデル名を入力してください。`);
-    return;
-  }
-
-  if (!await validateShortcutKey(true)) return;
+  const warningMessages = [
+    document.getElementById('providerError')?.textContent || '',
+    document.getElementById('modelError')?.textContent || '',
+    document.getElementById('shortcutError')?.textContent || ''
+  ].filter(Boolean);
+  setHeaderValidation(warningMessages[0] || '');
 
   const out = collectCurrentState();
   await chrome.storage.sync.set(out);
