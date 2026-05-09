@@ -96,11 +96,15 @@ function validateSelectedApiKey() {
     gemini: 'Gemini',
     claude: 'Claude'
   };
+  const providerError = document.getElementById('providerError');
   const apiKey = (document.getElementById(apiKeyByProvider[provider])?.value || '').trim();
   if (!apiKey) {
-    setStatus(`${labelByProvider[provider]} APIキーを入力してください。`, '#b91c1c');
+    const message = `${labelByProvider[provider]} APIキーを入力してください。`;
+    if (providerError) providerError.textContent = message;
+    setStatus(message, '#b91c1c');
     return false;
   }
+  if (providerError) providerError.textContent = '';
   return true;
 }
 
@@ -114,6 +118,7 @@ async function restore() {
   updatePreview();
   lastSavedState = JSON.stringify(collectCurrentState());
   updateDirtyState();
+  validateSelectedApiKey();
 }
 
 async function save() {
@@ -132,8 +137,11 @@ document.getElementById('openaiModel').addEventListener('blur', validateSelected
 document.getElementById('geminiModel').addEventListener('blur', validateSelectedModel);
 document.getElementById('claudeModel').addEventListener('blur', validateSelectedModel);
 document.getElementById('openaiApiKey').addEventListener('blur', validateSelectedApiKey);
+document.getElementById('openaiApiKey').addEventListener('input', validateSelectedApiKey);
 document.getElementById('geminiApiKey').addEventListener('blur', validateSelectedApiKey);
+document.getElementById('geminiApiKey').addEventListener('input', validateSelectedApiKey);
 document.getElementById('claudeApiKey').addEventListener('blur', validateSelectedApiKey);
+document.getElementById('claudeApiKey').addEventListener('input', validateSelectedApiKey);
 document.getElementById('aiProvider').addEventListener('change', () => {
   syncProviderUI();
   validateSelectedApiKey();

@@ -47,6 +47,7 @@
     .provider-group.active { border-color: #2563eb; background: #eff6ff; box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.12); }
     .provider-group.inactive { opacity: 0.62; }
     .provider-title { margin: 0 0 6px; font-size: 14px; color: #111827; }
+    .field-error { margin-top: 6px; color: #b91c1c; font-size: 13px; font-weight: 600; }
   </style>
 </head>
 <body>
@@ -69,6 +70,7 @@
       <option value="claude">Claude</option>
     </select>
   </label>
+  <p id="providerError" class="field-error" aria-live="polite"></p>
 
   <div class="provider-group" data-provider="openai">
     <p class="provider-title">OpenAI 設定</p>
