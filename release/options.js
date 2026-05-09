@@ -88,7 +88,7 @@ function validateSelectedModel() {
   return true;
 }
 
-function validateSelectedApiKey() {
+function validateSelectedApiKey(required = false) {
   const provider = document.getElementById('aiProvider')?.value;
   const apiKeyByProvider = {
     openai: 'openaiApiKey',
@@ -103,13 +103,15 @@ function validateSelectedApiKey() {
   const providerError = document.getElementById('providerError');
   const apiKey = (document.getElementById(apiKeyByProvider[provider])?.value || '').trim();
   if (!apiKey) {
-    const message = `${labelByProvider[provider]} APIキーを入力してください。`;
+    const message = required
+      ? `${labelByProvider[provider]} APIキーを入力してください。`
+      : `${labelByProvider[provider]} APIキーが未設定です（保存はできます）。`;
     if (providerError) providerError.textContent = message;
-    setStatus(message, '#b91c1c', true);
-    return false;
+    setStatus(message, required ? '#b91c1c' : '#92400e', true);
+    return !required;
   }
   if (providerError) providerError.textContent = '';
-  if (document.getElementById('status')?.textContent === `${labelByProvider[provider]} APIキーを入力してください。`) {
+  if (document.getElementById('status')?.textContent.includes(`${labelByProvider[provider]} APIキー`)) {
     setStatus('');
   }
   return true;
@@ -148,7 +150,6 @@ async function restore() {
 }
 
 async function save() {
-  if (!validateSelectedApiKey()) return;
   if (!validateSelectedModel()) return;
   if (!await validateShortcutKey()) return;
 
