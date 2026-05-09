@@ -17,7 +17,7 @@
   - OpenAI
   - Gemini
   - Claude
-- 1つのショートカットで実行（初期値: `Ctrl+B`）
+- 1つのショートカットで実行（初期値: `Ctrl+Shift+Y` / macOS: `Command+Shift+Y`）
 - 指示プロンプトは1つ（設定画面で編集）
 - 設定画面で「最終送信プロンプト」のプレビュー確認
 - AI ごとに API キーとモデル名を設定可能
@@ -55,7 +55,7 @@
 
 1. 変換したいテキストをクリップボードに入れる（コピー）
 2. テキスト入力欄（input / textarea / contenteditable）にカーソルを置く
-3. ショートカット（初期値: `Ctrl+B`）を押す
+3. ショートカット（初期値: `Ctrl+Shift+Y` / macOS: `Command+Shift+Y`）を押す
 4. AI 応答が自動で貼り付けられる
 
 ---
