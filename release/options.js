@@ -184,4 +184,7 @@ for (const k of keys) {
   if (!el || k === 'prompt' || k === 'aiProvider') continue;
   el.addEventListener('input', updateDirtyState);
 }
+setInterval(() => {
+  validateShortcutKey();
+}, 3000);
 restore();
