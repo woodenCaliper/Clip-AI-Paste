@@ -150,8 +150,20 @@ async function restore() {
 }
 
 async function save() {
-  if (!validateSelectedApiKey(true)) return;
-  if (!validateSelectedModel()) return;
+  setHeaderValidation('');
+  validateSelectedApiKey(false);
+
+  if (!validateSelectedModel()) {
+    const provider = document.getElementById('aiProvider')?.value;
+    const labelByProvider = {
+      openai: 'OpenAI',
+      gemini: 'Gemini',
+      claude: 'Claude'
+    };
+    setHeaderValidation(`${labelByProvider[provider]}モデル名を入力してください。`);
+    return;
+  }
+
   if (!await validateShortcutKey(true)) return;
 
   const out = collectCurrentState();
