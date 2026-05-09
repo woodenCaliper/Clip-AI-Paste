@@ -77,14 +77,13 @@ function validateSelectedModel() {
   const modelKey = modelKeyByProvider[provider];
   if (!modelKey) return true;
 
+  const modelError = document.getElementById('modelError');
   const model = (document.getElementById(modelKey)?.value || '').trim();
   if (!model) {
-    setStatus(`${labelByProvider[provider]}モデル名を入力してください。`, '#b91c1c', true);
+    if (modelError) modelError.textContent = `${labelByProvider[provider]}モデル名を入力してください。`;
     return false;
   }
-  if (document.getElementById('status')?.textContent === `${labelByProvider[provider]}モデル名を入力してください。`) {
-    setStatus('');
-  }
+  if (modelError) modelError.textContent = '';
   return true;
 }
 
@@ -121,13 +120,9 @@ async function validateShortcutKey() {
   if (!hasShortcut) {
     const message = 'ショートカットキーを設定してください。';
     if (shortcutError) shortcutError.textContent = message;
-    setStatus(message, '#b91c1c', true);
     return false;
   }
   if (shortcutError) shortcutError.textContent = '';
-  if (document.getElementById('status')?.textContent === 'ショートカットキーを設定してください。') {
-    setStatus('');
-  }
   return true;
 }
 
