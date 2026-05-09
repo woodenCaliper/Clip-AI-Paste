@@ -1,4 +1,5 @@
 const keys = ['aiProvider', 'openaiApiKey', 'geminiApiKey', 'claudeApiKey', 'openaiModel', 'geminiModel', 'claudeModel', 'prompt'];
+let lastSavedState = null;
 
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('shortcutLink')?.addEventListener('click', (e) => {
@@ -7,11 +8,12 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-function setStatus(message, color = '#166534') {
+function setStatus(message, color = '#166534', persist = false) {
   const status = document.getElementById('status');
   status.textContent = message;
   status.style.color = color;
   if (setStatus.timer) clearTimeout(setStatus.timer);
+  if (persist) return;
   setStatus.timer = setTimeout(() => { status.textContent = ''; }, 3500);
 }
 
@@ -38,6 +40,26 @@ function syncProviderUI() {
   });
 }
 
+function collectCurrentState() {
+  const out = {};
+  for (const k of keys) {
+    const el = document.getElementById(k);
+    if (!el) {
+      out[k] = '';
+      continue;
+    }
+    out[k] = k === 'prompt' ? el.value : el.value.trim();
+  }
+  return out;
+}
+
+function updateDirtyState() {
+  const dirtyState = document.getElementById('dirtyState');
+  if (!dirtyState || !lastSavedState) return;
+  const currentState = JSON.stringify(collectCurrentState());
+  dirtyState.textContent = currentState === lastSavedState ? '' : '（未保存の変更があります）';
+}
+
 
 function validateSelectedModel() {
   const provider = document.getElementById('aiProvider')?.value;
@@ -57,8 +79,11 @@ function validateSelectedModel() {
 
   const model = (document.getElementById(modelKey)?.value || '').trim();
   if (!model) {
-    setStatus(`${labelByProvider[provider]}モデル名を入力してください。`, '#b91c1c');
+    setStatus(`${labelByProvider[provider]}モデル名を入力してください。`, '#b91c1c', true);
     return false;
+  }
+  if (document.getElementById('status')?.textContent === `${labelByProvider[provider]}モデル名を入力してください。`) {
+    setStatus('');
   }
   return true;
 }
@@ -75,10 +100,35 @@ function validateSelectedApiKey() {
     gemini: 'Gemini',
     claude: 'Claude'
   };
+  const providerError = document.getElementById('providerError');
   const apiKey = (document.getElementById(apiKeyByProvider[provider])?.value || '').trim();
   if (!apiKey) {
-    setStatus(`${labelByProvider[provider]} APIキーを入力してください。`, '#b91c1c');
+    const message = `${labelByProvider[provider]} APIキーを入力してください。`;
+    if (providerError) providerError.textContent = message;
+    setStatus(message, '#b91c1c', true);
     return false;
+  }
+  if (providerError) providerError.textContent = '';
+  if (document.getElementById('status')?.textContent === `${labelByProvider[provider]} APIキーを入力してください。`) {
+    setStatus('');
+  }
+  return true;
+}
+
+async function validateShortcutKey() {
+  const shortcutError = document.getElementById('shortcutError');
+  const commands = await chrome.commands.getAll();
+  const runCommand = commands.find((command) => command.name === 'run-clip-ai-paste');
+  const hasShortcut = Boolean(runCommand?.shortcut);
+  if (!hasShortcut) {
+    const message = 'ショートカットキーを設定してください。';
+    if (shortcutError) shortcutError.textContent = message;
+    setStatus(message, '#b91c1c', true);
+    return false;
+  }
+  if (shortcutError) shortcutError.textContent = '';
+  if (document.getElementById('status')?.textContent === 'ショートカットキーを設定してください。') {
+    setStatus('');
   }
   return true;
 }
@@ -91,22 +141,21 @@ async function restore() {
   }
   syncProviderUI();
   updatePreview();
+  lastSavedState = JSON.stringify(collectCurrentState());
+  updateDirtyState();
+  validateSelectedApiKey();
+  await validateShortcutKey();
 }
 
 async function save() {
   if (!validateSelectedApiKey()) return;
   if (!validateSelectedModel()) return;
+  if (!await validateShortcutKey()) return;
 
-  const out = {};
-  for (const k of keys) {
-    const el = document.getElementById(k);
-    if (!el) {
-      out[k] = '';
-      continue;
-    }
-    out[k] = k === 'prompt' ? el.value : el.value.trim();
-  }
+  const out = collectCurrentState();
   await chrome.storage.sync.set(out);
+  lastSavedState = JSON.stringify(out);
+  updateDirtyState();
   setStatus('保存しました');
 }
 
@@ -115,12 +164,27 @@ document.getElementById('openaiModel').addEventListener('blur', validateSelected
 document.getElementById('geminiModel').addEventListener('blur', validateSelectedModel);
 document.getElementById('claudeModel').addEventListener('blur', validateSelectedModel);
 document.getElementById('openaiApiKey').addEventListener('blur', validateSelectedApiKey);
+document.getElementById('openaiApiKey').addEventListener('input', validateSelectedApiKey);
 document.getElementById('geminiApiKey').addEventListener('blur', validateSelectedApiKey);
+document.getElementById('geminiApiKey').addEventListener('input', validateSelectedApiKey);
 document.getElementById('claudeApiKey').addEventListener('blur', validateSelectedApiKey);
+document.getElementById('claudeApiKey').addEventListener('input', validateSelectedApiKey);
 document.getElementById('aiProvider').addEventListener('change', () => {
   syncProviderUI();
   validateSelectedApiKey();
   validateSelectedModel();
+  updateDirtyState();
 });
-document.getElementById('prompt').addEventListener('input', updatePreview);
+document.getElementById('prompt').addEventListener('input', () => {
+  updatePreview();
+  updateDirtyState();
+});
+for (const k of keys) {
+  const el = document.getElementById(k);
+  if (!el || k === 'prompt' || k === 'aiProvider') continue;
+  el.addEventListener('input', updateDirtyState);
+}
+setInterval(() => {
+  validateShortcutKey();
+}, 3000);
 restore();
