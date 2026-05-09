@@ -12,6 +12,7 @@
     .row { display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; }
     button { margin-top: 16px; padding: 8px 14px; }
     #status { margin-left: 12px; color: #166534; }
+    #dirtyState { margin-left: 12px; color: #b45309; font-weight: 600; }
     .subtle { margin-top:8px;color:#374151;font-size:13px; }
     #previewArea { min-height: 180px; background:#f9fafb; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
     .provider-group { border: 1px solid #d1d5db; border-radius: 10px; padding: 12px; margin-top: 12px; background: #f9fafb; }
@@ -58,7 +59,7 @@
 
   <p><a id="shortcutLink" href="#">ショートカット設定を開く</a></p>
 
-  <button id="save">保存</button><span id="status"></span>
+  <button id="save">保存</button><span id="status"></span><span id="dirtyState"></span>
 
   <script src="options.js"></script>
 </body>

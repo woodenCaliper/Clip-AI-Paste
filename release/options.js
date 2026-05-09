@@ -1,4 +1,5 @@
 const keys = ['aiProvider', 'openaiApiKey', 'geminiApiKey', 'claudeApiKey', 'openaiModel', 'geminiModel', 'claudeModel', 'prompt'];
+let lastSavedState = null;
 
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('shortcutLink')?.addEventListener('click', (e) => {
@@ -36,6 +37,26 @@ function syncProviderUI() {
     group.classList.toggle('active', isActive);
     group.classList.toggle('inactive', !isActive);
   });
+}
+
+function collectCurrentState() {
+  const out = {};
+  for (const k of keys) {
+    const el = document.getElementById(k);
+    if (!el) {
+      out[k] = '';
+      continue;
+    }
+    out[k] = k === 'prompt' ? el.value : el.value.trim();
+  }
+  return out;
+}
+
+function updateDirtyState() {
+  const dirtyState = document.getElementById('dirtyState');
+  if (!dirtyState || !lastSavedState) return;
+  const currentState = JSON.stringify(collectCurrentState());
+  dirtyState.textContent = currentState === lastSavedState ? '' : '（未保存の変更があります）';
 }
 
 
@@ -91,22 +112,18 @@ async function restore() {
   }
   syncProviderUI();
   updatePreview();
+  lastSavedState = JSON.stringify(collectCurrentState());
+  updateDirtyState();
 }
 
 async function save() {
   if (!validateSelectedApiKey()) return;
   if (!validateSelectedModel()) return;
 
-  const out = {};
-  for (const k of keys) {
-    const el = document.getElementById(k);
-    if (!el) {
-      out[k] = '';
-      continue;
-    }
-    out[k] = k === 'prompt' ? el.value : el.value.trim();
-  }
+  const out = collectCurrentState();
   await chrome.storage.sync.set(out);
+  lastSavedState = JSON.stringify(out);
+  updateDirtyState();
   setStatus('保存しました');
 }
 
@@ -121,6 +138,15 @@ document.getElementById('aiProvider').addEventListener('change', () => {
   syncProviderUI();
   validateSelectedApiKey();
   validateSelectedModel();
+  updateDirtyState();
 });
-document.getElementById('prompt').addEventListener('input', updatePreview);
+document.getElementById('prompt').addEventListener('input', () => {
+  updatePreview();
+  updateDirtyState();
+});
+for (const k of keys) {
+  const el = document.getElementById(k);
+  if (!el || k === 'prompt' || k === 'aiProvider') continue;
+  el.addEventListener('input', updateDirtyState);
+}
 restore();
