@@ -14,6 +14,10 @@
     #status { margin-left: 12px; color: #166534; }
     .subtle { margin-top:8px;color:#374151;font-size:13px; }
     #previewArea { min-height: 180px; background:#f9fafb; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .provider-group { border: 1px solid #d1d5db; border-radius: 10px; padding: 12px; margin-top: 12px; background: #f9fafb; }
+    .provider-group.active { border-color: #2563eb; background: #eff6ff; box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.12); }
+    .provider-group.inactive { opacity: 0.62; }
+    .provider-title { margin: 0 0 6px; font-size: 14px; color: #111827; }
   </style>
 </head>
 <body>
@@ -26,13 +30,19 @@
     </select>
   </label>
 
-  <label>OpenAI APIキー<input id="openaiApiKey" type="password" /></label>
-  <label>Gemini APIキー<input id="geminiApiKey" type="password" /></label>
-  <label>Claude APIキー<input id="claudeApiKey" type="password" /></label>
-
-  <div class="row">
+  <div class="provider-group" data-provider="openai">
+    <p class="provider-title">OpenAI 設定</p>
+    <label>OpenAI APIキー<input id="openaiApiKey" type="password" /></label>
     <label>OpenAI モデル名<input id="openaiModel" type="text" /></label>
+  </div>
+  <div class="provider-group" data-provider="gemini">
+    <p class="provider-title">Gemini 設定</p>
+    <label>Gemini APIキー<input id="geminiApiKey" type="password" /></label>
     <label>Gemini モデル名<input id="geminiModel" type="text" /></label>
+  </div>
+  <div class="provider-group" data-provider="claude">
+    <p class="provider-title">Claude 設定</p>
+    <label>Claude APIキー<input id="claudeApiKey" type="password" /></label>
     <label>Claude モデル名<input id="claudeModel" type="text" /></label>
   </div>
 

@@ -28,13 +28,56 @@ function updatePreview() {
   previewArea.value = buildPrompt(prompt, PREVIEW_CLIPBOARD_PLACEHOLDER);
 }
 
-
-function validateOpenAIModel() {
+function syncProviderUI() {
   const provider = document.getElementById('aiProvider')?.value;
-  const model = (document.getElementById('openaiModel')?.value || '').trim();
-  if (provider !== 'openai') return true;
+  const groups = document.querySelectorAll('.provider-group');
+  groups.forEach((group) => {
+    const isActive = group.dataset.provider === provider;
+    group.classList.toggle('active', isActive);
+    group.classList.toggle('inactive', !isActive);
+  });
+}
+
+
+function validateSelectedModel() {
+  const provider = document.getElementById('aiProvider')?.value;
+  const modelKeyByProvider = {
+    openai: 'openaiModel',
+    gemini: 'geminiModel',
+    claude: 'claudeModel'
+  };
+  const labelByProvider = {
+    openai: 'OpenAI',
+    gemini: 'Gemini',
+    claude: 'Claude'
+  };
+
+  const modelKey = modelKeyByProvider[provider];
+  if (!modelKey) return true;
+
+  const model = (document.getElementById(modelKey)?.value || '').trim();
   if (!model) {
-    setStatus('OpenAIモデル名を入力してください。', '#b91c1c');
+    setStatus(`${labelByProvider[provider]}モデル名を入力してください。`, '#b91c1c');
+    return false;
+  }
+  return true;
+}
+
+function validateSelectedApiKey() {
+  const provider = document.getElementById('aiProvider')?.value;
+  const apiKeyByProvider = {
+    openai: 'openaiApiKey',
+    gemini: 'geminiApiKey',
+    claude: 'claudeApiKey'
+  };
+  const labelByProvider = {
+    openai: 'OpenAI',
+    gemini: 'Gemini',
+    claude: 'Claude'
+  };
+  const apiKey = (document.getElementById(apiKeyByProvider[provider])?.value || '').trim();
+  if (!apiKey) {
+    setStatus(`${labelByProvider[provider]} APIキーを入力してください。`, '#b91c1c');
     return false;
   }
   return true;
@@ -46,11 +89,13 @@ async function restore() {
     const el = document.getElementById(k);
     if (el) el.value = data[k] || '';
   }
+  syncProviderUI();
   updatePreview();
 }
 
 async function save() {
-  if (!validateOpenAIModel()) return;
+  if (!validateSelectedApiKey()) return;
+  if (!validateSelectedModel()) return;
 
   const out = {};
   for (const k of keys) {
@@ -66,6 +111,16 @@ async function save() {
 }
 
 document.getElementById('save').addEventListener('click', save);
-document.getElementById('openaiModel').addEventListener('blur', validateOpenAIModel);
+document.getElementById('openaiModel').addEventListener('blur', validateSelectedModel);
+document.getElementById('geminiModel').addEventListener('blur', validateSelectedModel);
+document.getElementById('claudeModel').addEventListener('blur', validateSelectedModel);
+document.getElementById('openaiApiKey').addEventListener('blur', validateSelectedApiKey);
+document.getElementById('geminiApiKey').addEventListener('blur', validateSelectedApiKey);
+document.getElementById('claudeApiKey').addEventListener('blur', validateSelectedApiKey);
+document.getElementById('aiProvider').addEventListener('change', () => {
+  syncProviderUI();
+  validateSelectedApiKey();
+  validateSelectedModel();
+});
 document.getElementById('prompt').addEventListener('input', updatePreview);
 restore();
