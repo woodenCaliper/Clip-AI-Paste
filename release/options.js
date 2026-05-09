@@ -120,7 +120,7 @@ function validateSelectedApiKey(required = false) {
   return true;
 }
 
-async function validateShortcutKey() {
+async function validateShortcutKey(showHeaderError = false) {
   const shortcutError = document.getElementById('shortcutError');
   const commands = await chrome.commands.getAll();
   const runCommand = commands.find((command) => command.name === 'run-clip-ai-paste');
@@ -128,6 +128,7 @@ async function validateShortcutKey() {
   if (!hasShortcut) {
     const message = 'ショートカットキーを設定してください。';
     if (shortcutError) shortcutError.textContent = message;
+    if (showHeaderError) setHeaderValidation(message);
     return false;
   }
   if (shortcutError) shortcutError.textContent = '';
@@ -151,7 +152,7 @@ async function restore() {
 async function save() {
   if (!validateSelectedApiKey(true)) return;
   if (!validateSelectedModel()) return;
-  if (!await validateShortcutKey()) return;
+  if (!await validateShortcutKey(true)) return;
 
   const out = collectCurrentState();
   await chrome.storage.sync.set(out);
