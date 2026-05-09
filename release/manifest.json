@@ -24,8 +24,7 @@
   "commands": {
     "run-clip-ai-paste": {
       "suggested_key": {
-        "default": "Ctrl+Shift+Y",
-        "mac": "Command+Shift+Y"
+        "default": "Ctrl+B"
       },
       "description": "Run Clip AI Paste"
     }
