@@ -17,6 +17,12 @@ function setStatus(message, color = '#166534', persist = false) {
   setStatus.timer = setTimeout(() => { status.textContent = ''; }, 3500);
 }
 
+function setHeaderValidation(message = '') {
+  const el = document.getElementById('headerValidation');
+  if (!el) return;
+  el.textContent = message;
+}
+
 const PREVIEW_CLIPBOARD_PLACEHOLDER = '＜ここにクリップボードの内容＞';
 
 function buildPrompt(prompt, inputText) {
@@ -106,9 +112,11 @@ function validateSelectedApiKey(required = false) {
       ? `${labelByProvider[provider]} APIキーを入力してください。`
       : `${labelByProvider[provider]} APIキーが未設定です。`;
     if (providerError) providerError.textContent = message;
+    setHeaderValidation(required ? message : '');
     return !required;
   }
   if (providerError) providerError.textContent = '';
+  setHeaderValidation('');
   return true;
 }
 
@@ -141,6 +149,7 @@ async function restore() {
 }
 
 async function save() {
+  if (!validateSelectedApiKey(true)) return;
   if (!validateSelectedModel()) return;
   if (!await validateShortcutKey()) return;
 
