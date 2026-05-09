@@ -148,9 +148,9 @@ async function restore() {
 }
 
 async function save() {
-  if (!validateSelectedApiKey()) return;
-  if (!validateSelectedModel()) return;
-  if (!await validateShortcutKey()) return;
+  validateSelectedApiKey();
+  validateSelectedModel();
+  await validateShortcutKey();
 
   const out = collectCurrentState();
   await chrome.storage.sync.set(out);
