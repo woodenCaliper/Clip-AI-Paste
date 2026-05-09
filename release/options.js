@@ -115,6 +115,24 @@ function validateSelectedApiKey() {
   return true;
 }
 
+async function validateShortcutKey() {
+  const shortcutError = document.getElementById('shortcutError');
+  const commands = await chrome.commands.getAll();
+  const runCommand = commands.find((command) => command.name === 'run-clip-ai-paste');
+  const hasShortcut = Boolean(runCommand?.shortcut);
+  if (!hasShortcut) {
+    const message = 'ショートカットキーを設定してください。';
+    if (shortcutError) shortcutError.textContent = message;
+    setStatus(message, '#b91c1c', true);
+    return false;
+  }
+  if (shortcutError) shortcutError.textContent = '';
+  if (document.getElementById('status')?.textContent === 'ショートカットキーを設定してください。') {
+    setStatus('');
+  }
+  return true;
+}
+
 async function restore() {
   const data = await chrome.storage.sync.get(keys);
   for (const k of keys) {
@@ -126,11 +144,13 @@ async function restore() {
   lastSavedState = JSON.stringify(collectCurrentState());
   updateDirtyState();
   validateSelectedApiKey();
+  await validateShortcutKey();
 }
 
 async function save() {
   if (!validateSelectedApiKey()) return;
   if (!validateSelectedModel()) return;
+  if (!await validateShortcutKey()) return;
 
   const out = collectCurrentState();
   await chrome.storage.sync.set(out);
