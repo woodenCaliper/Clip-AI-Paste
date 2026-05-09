@@ -8,11 +8,12 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-function setStatus(message, color = '#166534') {
+function setStatus(message, color = '#166534', persist = false) {
   const status = document.getElementById('status');
   status.textContent = message;
   status.style.color = color;
   if (setStatus.timer) clearTimeout(setStatus.timer);
+  if (persist) return;
   setStatus.timer = setTimeout(() => { status.textContent = ''; }, 3500);
 }
 
@@ -78,8 +79,11 @@ function validateSelectedModel() {
 
   const model = (document.getElementById(modelKey)?.value || '').trim();
   if (!model) {
-    setStatus(`${labelByProvider[provider]}モデル名を入力してください。`, '#b91c1c');
+    setStatus(`${labelByProvider[provider]}モデル名を入力してください。`, '#b91c1c', true);
     return false;
+  }
+  if (document.getElementById('status')?.textContent === `${labelByProvider[provider]}モデル名を入力してください。`) {
+    setStatus('');
   }
   return true;
 }
@@ -101,10 +105,13 @@ function validateSelectedApiKey() {
   if (!apiKey) {
     const message = `${labelByProvider[provider]} APIキーを入力してください。`;
     if (providerError) providerError.textContent = message;
-    setStatus(message, '#b91c1c');
+    setStatus(message, '#b91c1c', true);
     return false;
   }
   if (providerError) providerError.textContent = '';
+  if (document.getElementById('status')?.textContent === `${labelByProvider[provider]} APIキーを入力してください。`) {
+    setStatus('');
+  }
   return true;
 }
 
