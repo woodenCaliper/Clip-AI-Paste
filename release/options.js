@@ -29,12 +29,25 @@ function updatePreview() {
 }
 
 
-function validateOpenAIModel() {
+function validateSelectedModel() {
   const provider = document.getElementById('aiProvider')?.value;
-  const model = (document.getElementById('openaiModel')?.value || '').trim();
-  if (provider !== 'openai') return true;
+  const modelKeyByProvider = {
+    openai: 'openaiModel',
+    gemini: 'geminiModel',
+    claude: 'claudeModel'
+  };
+  const labelByProvider = {
+    openai: 'OpenAI',
+    gemini: 'Gemini',
+    claude: 'Claude'
+  };
+
+  const modelKey = modelKeyByProvider[provider];
+  if (!modelKey) return true;
+
+  const model = (document.getElementById(modelKey)?.value || '').trim();
   if (!model) {
-    setStatus('OpenAIモデル名を入力してください。', '#b91c1c');
+    setStatus(`${labelByProvider[provider]}モデル名を入力してください。`, '#b91c1c');
     return false;
   }
   return true;
@@ -50,7 +63,7 @@ async function restore() {
 }
 
 async function save() {
-  if (!validateOpenAIModel()) return;
+  if (!validateSelectedModel()) return;
 
   const out = {};
   for (const k of keys) {
@@ -66,6 +79,9 @@ async function save() {
 }
 
 document.getElementById('save').addEventListener('click', save);
-document.getElementById('openaiModel').addEventListener('blur', validateOpenAIModel);
+document.getElementById('openaiModel').addEventListener('blur', validateSelectedModel);
+document.getElementById('geminiModel').addEventListener('blur', validateSelectedModel);
+document.getElementById('claudeModel').addEventListener('blur', validateSelectedModel);
+document.getElementById('aiProvider').addEventListener('change', validateSelectedModel);
 document.getElementById('prompt').addEventListener('input', updatePreview);
 restore();
