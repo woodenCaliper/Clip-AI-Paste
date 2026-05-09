@@ -107,13 +107,9 @@ function validateSelectedApiKey(required = false) {
       ? `${labelByProvider[provider]} APIキーを入力してください。`
       : `${labelByProvider[provider]} APIキーが未設定です。`;
     if (providerError) providerError.textContent = message;
-    setStatus(message, required ? '#b91c1c' : '#92400e', true);
     return !required;
   }
   if (providerError) providerError.textContent = '';
-  if (document.getElementById('status')?.textContent.includes(`${labelByProvider[provider]} APIキー`)) {
-    setStatus('');
-  }
   return true;
 }
 
