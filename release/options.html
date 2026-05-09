@@ -5,14 +5,41 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Clip AI Paste 設定</title>
   <style>
-    body { font-family: sans-serif; max-width: 840px; margin: 20px auto; padding: 0 12px; }
+    body { font-family: sans-serif; margin: 0; }
+    .sticky-header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: #ffffff;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 12px;
+    }
+    .header-inner {
+      max-width: 840px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .header-title {
+      margin: 0;
+      font-size: 22px;
+    }
+    .header-status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 24px;
+    }
+    .page-content { max-width: 840px; margin: 20px auto; padding: 0 12px 20px; }
     label { display:block; margin-top: 12px; font-weight: 600; }
     input, textarea, select { width:100%; box-sizing:border-box; padding:8px; margin-top:4px; }
     textarea { min-height: 140px; }
     .row { display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; }
     button { margin-top: 16px; padding: 8px 14px; }
-    #status { margin-left: 12px; color: #166534; }
-    #dirtyState { margin-left: 12px; color: #b45309; font-weight: 600; }
+    #status { color: #166534; }
+    #dirtyState { color: #b45309; font-weight: 600; }
     .subtle { margin-top:8px;color:#374151;font-size:13px; }
     #previewArea { min-height: 180px; background:#f9fafb; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
     .provider-group { border: 1px solid #d1d5db; border-radius: 10px; padding: 12px; margin-top: 12px; background: #f9fafb; }
@@ -22,7 +49,17 @@
   </style>
 </head>
 <body>
-  <h1>Clip AI Paste 設定</h1>
+  <header class="sticky-header">
+    <div class="header-inner">
+      <h1 class="header-title">Clip AI Paste 設定</h1>
+      <div class="header-status">
+        <span id="status"></span>
+        <span id="dirtyState"></span>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-content">
   <label>使用AI
     <select id="aiProvider">
       <option value="openai">OpenAI</option>
@@ -59,8 +96,9 @@
 
   <p><a id="shortcutLink" href="#">ショートカット設定を開く</a></p>
 
-  <button id="save">保存</button><span id="status"></span><span id="dirtyState"></span>
+  <button id="save">保存</button>
 
   <script src="options.js"></script>
+  </main>
 </body>
 </html>
