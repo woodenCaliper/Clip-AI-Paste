@@ -38,6 +38,7 @@
     textarea { min-height: 140px; }
     .row { display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; }
     button { margin-top: 16px; padding: 8px 14px; }
+    .header-save { margin-top: 0; white-space: nowrap; }
     #status { color: #166534; }
     #dirtyState { color: #b45309; font-weight: 600; }
     .subtle { margin-top:8px;color:#374151;font-size:13px; }
@@ -55,6 +56,7 @@
       <div class="header-status">
         <span id="status"></span>
         <span id="dirtyState"></span>
+        <button id="save" class="header-save" type="button">保存</button>
       </div>
     </div>
   </header>
@@ -96,7 +98,6 @@
 
   <p><a id="shortcutLink" href="#">ショートカット設定を開く</a></p>
 
-  <button id="save">保存</button>
 
   <script src="options.js"></script>
   </main>
