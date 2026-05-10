@@ -106,15 +106,10 @@ function validateSelectedApiKey() {
   const providerError = document.getElementById('providerError');
   const apiKey = (document.getElementById(apiKeyByProvider[provider])?.value || '').trim();
   if (!apiKey) {
-    const message = `${labelByProvider[provider]} APIキーを入力してください。`;
-    if (providerError) providerError.textContent = message;
-    setStatus(message, '#b91c1c', true);
+    if (providerError) providerError.textContent = `${labelByProvider[provider]} APIキーを入力してください。`;
     return false;
   }
   if (providerError) providerError.textContent = '';
-  if (document.getElementById('status')?.textContent === `${labelByProvider[provider]} APIキーを入力してください。`) {
-    setStatus('');
-  }
   return true;
 }
 
@@ -124,15 +119,10 @@ async function validateShortcutKey() {
   const runCommand = commands.find((command) => command.name === 'run-clip-ai-paste');
   const hasShortcut = Boolean(runCommand?.shortcut);
   if (!hasShortcut) {
-    const message = 'ショートカットキーを設定してください。';
-    if (shortcutError) shortcutError.textContent = message;
-    setStatus(message, '#b91c1c', true);
+    if (shortcutError) shortcutError.textContent = 'ショートカットキーを設定してください。';
     return false;
   }
   if (shortcutError) shortcutError.textContent = '';
-  if (document.getElementById('status')?.textContent === 'ショートカットキーを設定してください。') {
-    setStatus('');
-  }
   return true;
 }
 
