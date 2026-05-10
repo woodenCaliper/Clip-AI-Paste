@@ -21,6 +21,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 12px;
+      position: relative;
     }
     .header-title {
       margin: 0;
@@ -28,9 +29,21 @@
     }
     .header-status {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: 10px;
-      min-height: 24px;
+      min-height: 72px;
+      width: 100%;
+      padding-right: 120px;
+      justify-content: flex-end;
+    }
+    .save-wrap {
+      position: absolute;
+      top: 0;
+      right: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
     }
     .page-content { max-width: 840px; margin: 20px auto; padding: 0 12px 20px; }
     label { display:block; margin-top: 12px; font-weight: 600; }
@@ -40,7 +53,7 @@
     button { margin-top: 16px; padding: 8px 14px; }
     .header-save { margin-top: 0; white-space: nowrap; }
     #status { color: #166534; }
-    #dirtyState { color: #b45309; font-weight: 600; }
+    #dirtyState { color: #b91c1c; font-weight: 600; text-align: right; }
     .subtle { margin-top:8px;color:#374151;font-size:13px; }
     #previewArea { min-height: 180px; background:#f9fafb; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
     .provider-group { border: 1px solid #d1d5db; border-radius: 10px; padding: 12px; margin-top: 12px; background: #f9fafb; }
@@ -56,8 +69,10 @@
       <h1 class="header-title">Clip AI Paste 設定</h1>
       <div class="header-status">
         <span id="status"></span>
-        <span id="dirtyState"></span>
-        <button id="save" class="header-save" type="button">保存</button>
+        <div class="save-wrap">
+          <button id="save" class="header-save" type="button">保存</button>
+          <span id="dirtyState"></span>
+        </div>
       </div>
     </div>
   </header>

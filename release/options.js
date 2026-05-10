@@ -8,8 +8,9 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-function setStatus(message, color = '#166534', persist = false) {
-  const status = document.getElementById('status');
+function setStatus(message, color = '#166534', persist = false, targetId = 'status') {
+  const status = document.getElementById(targetId);
+  if (!status) return;
   status.textContent = message;
   status.style.color = color;
   if (setStatus.timer) clearTimeout(setStatus.timer);
@@ -57,7 +58,9 @@ function updateDirtyState() {
   const dirtyState = document.getElementById('dirtyState');
   if (!dirtyState || !lastSavedState) return;
   const currentState = JSON.stringify(collectCurrentState());
-  dirtyState.textContent = currentState === lastSavedState ? '' : '（未保存の変更があります）';
+  const hasUnsavedChanges = currentState !== lastSavedState;
+  dirtyState.textContent = hasUnsavedChanges ? '（未保存の変更があります）' : '';
+  if (hasUnsavedChanges) dirtyState.style.color = '#b91c1c';
 }
 
 
@@ -148,15 +151,15 @@ async function restore() {
 }
 
 async function save() {
-  if (!validateSelectedApiKey()) return;
-  if (!validateSelectedModel()) return;
-  if (!await validateShortcutKey()) return;
+  validateSelectedApiKey();
+  validateSelectedModel();
+  await validateShortcutKey();
 
   const out = collectCurrentState();
   await chrome.storage.sync.set(out);
   lastSavedState = JSON.stringify(out);
   updateDirtyState();
-  setStatus('保存しました');
+  setStatus('保存しました', '#166534', false, 'dirtyState');
 }
 
 document.getElementById('save').addEventListener('click', save);
