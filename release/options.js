@@ -98,10 +98,15 @@ function validateSelectedApiKey() {
     gemini: 'geminiApiKey',
     claude: 'claudeApiKey'
   };
+  const labelByProvider = {
+    openai: 'OpenAI',
+    gemini: 'Gemini',
+    claude: 'Claude'
+  };
   const providerError = document.getElementById('providerError');
   const apiKey = (document.getElementById(apiKeyByProvider[provider])?.value || '').trim();
   if (!apiKey) {
-    if (providerError) providerError.textContent = '';
+    if (providerError) providerError.textContent = `${labelByProvider[provider]} APIキーを入力してください。`;
     return false;
   }
   if (providerError) providerError.textContent = '';
@@ -114,7 +119,7 @@ async function validateShortcutKey() {
   const runCommand = commands.find((command) => command.name === 'run-clip-ai-paste');
   const hasShortcut = Boolean(runCommand?.shortcut);
   if (!hasShortcut) {
-    if (shortcutError) shortcutError.textContent = '';
+    if (shortcutError) shortcutError.textContent = 'ショートカットキーを設定してください。';
     return false;
   }
   if (shortcutError) shortcutError.textContent = '';
