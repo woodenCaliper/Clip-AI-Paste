@@ -32,6 +32,12 @@
       gap: 10px;
       min-height: 24px;
     }
+    .save-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+    }
     .page-content { max-width: 840px; margin: 20px auto; padding: 0 12px 20px; }
     label { display:block; margin-top: 12px; font-weight: 600; }
     input, textarea, select { width:100%; box-sizing:border-box; padding:8px; margin-top:4px; }
@@ -56,8 +62,10 @@
       <h1 class="header-title">Clip AI Paste 設定</h1>
       <div class="header-status">
         <span id="status"></span>
-        <span id="dirtyState"></span>
-        <button id="save" class="header-save" type="button">保存</button>
+        <div class="save-wrap">
+          <button id="save" class="header-save" type="button">保存</button>
+          <span id="dirtyState"></span>
+        </div>
       </div>
     </div>
   </header>
