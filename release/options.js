@@ -59,7 +59,7 @@ function updateDirtyState() {
   if (!dirtyState || !lastSavedState) return;
   const currentState = JSON.stringify(collectCurrentState());
   const hasUnsavedChanges = currentState !== lastSavedState;
-  dirtyState.textContent = hasUnsavedChanges ? '（未保存の変更があります）' : '';
+  dirtyState.textContent = hasUnsavedChanges ? '未保存' : '';
   if (hasUnsavedChanges) dirtyState.style.color = '#b91c1c';
 }
 
