@@ -8,8 +8,9 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-function setStatus(message, color = '#166534', persist = false) {
-  const status = document.getElementById('status');
+function setStatus(message, color = '#166534', persist = false, targetId = 'status') {
+  const status = document.getElementById(targetId);
+  if (!status) return;
   status.textContent = message;
   status.style.color = color;
   if (setStatus.timer) clearTimeout(setStatus.timer);
@@ -156,7 +157,7 @@ async function save() {
   await chrome.storage.sync.set(out);
   lastSavedState = JSON.stringify(out);
   updateDirtyState();
-  setStatus('保存しました');
+  setStatus('保存しました', '#166534', false, 'dirtyState');
 }
 
 document.getElementById('save').addEventListener('click', save);
