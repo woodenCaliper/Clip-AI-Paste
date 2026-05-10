@@ -98,23 +98,13 @@ function validateSelectedApiKey() {
     gemini: 'geminiApiKey',
     claude: 'claudeApiKey'
   };
-  const labelByProvider = {
-    openai: 'OpenAI',
-    gemini: 'Gemini',
-    claude: 'Claude'
-  };
   const providerError = document.getElementById('providerError');
   const apiKey = (document.getElementById(apiKeyByProvider[provider])?.value || '').trim();
   if (!apiKey) {
-    const message = `${labelByProvider[provider]} APIキーを入力してください。`;
-    if (providerError) providerError.textContent = message;
-    setStatus(message, '#b91c1c', true);
+    if (providerError) providerError.textContent = '';
     return false;
   }
   if (providerError) providerError.textContent = '';
-  if (document.getElementById('status')?.textContent === `${labelByProvider[provider]} APIキーを入力してください。`) {
-    setStatus('');
-  }
   return true;
 }
 
