@@ -124,15 +124,10 @@ async function validateShortcutKey() {
   const runCommand = commands.find((command) => command.name === 'run-clip-ai-paste');
   const hasShortcut = Boolean(runCommand?.shortcut);
   if (!hasShortcut) {
-    const message = 'ショートカットキーを設定してください。';
-    if (shortcutError) shortcutError.textContent = message;
-    setStatus(message, '#b91c1c', true);
+    if (shortcutError) shortcutError.textContent = '';
     return false;
   }
   if (shortcutError) shortcutError.textContent = '';
-  if (document.getElementById('status')?.textContent === 'ショートカットキーを設定してください。') {
-    setStatus('');
-  }
   return true;
 }
 
