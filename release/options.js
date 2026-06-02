@@ -1,4 +1,4 @@
-const keys = ['aiProvider', 'openaiApiKey', 'geminiApiKey', 'claudeApiKey', 'openaiModel', 'geminiModel', 'claudeModel', 'prompt'];
+const keys = ['aiProvider', 'openaiApiKey', 'geminiApiKey', 'claudeApiKey', 'openaiModel', 'geminiModel', 'claudeModel', 'prompt', 'promptImage'];
 let lastSavedState = null;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -18,17 +18,29 @@ function setStatus(message, color = '#166534', persist = false, targetId = 'stat
   setStatus.timer = setTimeout(() => { status.textContent = ''; }, 3500);
 }
 
-const PREVIEW_CLIPBOARD_PLACEHOLDER = '＜ここにクリップボードの内容＞';
+const PREVIEW_TEXT_PLACEHOLDER = '＜ここにクリップボードのテキスト＞';
+const PREVIEW_IMAGE_PLACEHOLDER = '＜ここに画像データ＞';
 
-function buildPrompt(prompt, inputText) {
+function buildTextPrompt(prompt, inputText) {
   return `"入力テキスト"の内容に対して下記の"指示"を適用してください\n\n# 指示\n\n${prompt}\n\n# 入力テキスト\n\n${inputText}`;
+}
+
+function buildImagePrompt(prompt) {
+  return `下記の"指示"を画像に対して適用してください\n\n# 指示\n\n${prompt}`;
 }
 
 function updatePreview() {
   const prompt = document.getElementById('prompt')?.value || '';
   const previewArea = document.getElementById('previewArea');
   if (!previewArea) return;
-  previewArea.value = buildPrompt(prompt, PREVIEW_CLIPBOARD_PLACEHOLDER);
+  previewArea.value = buildTextPrompt(prompt, PREVIEW_TEXT_PLACEHOLDER);
+}
+
+function updateImagePreview() {
+  const prompt = document.getElementById('promptImage')?.value || '';
+  const previewArea = document.getElementById('previewImageArea');
+  if (!previewArea) return;
+  previewArea.value = `[${PREVIEW_IMAGE_PLACEHOLDER}]\n\n${buildImagePrompt(prompt)}`;
 }
 
 function syncProviderUI() {
@@ -49,7 +61,7 @@ function collectCurrentState() {
       out[k] = '';
       continue;
     }
-    out[k] = k === 'prompt' ? el.value : el.value.trim();
+    out[k] = (k === 'prompt' || k === 'promptImage') ? el.value : el.value.trim();
   }
   return out;
 }
@@ -134,6 +146,7 @@ async function restore() {
   }
   syncProviderUI();
   updatePreview();
+  updateImagePreview();
   lastSavedState = JSON.stringify(collectCurrentState());
   updateDirtyState();
   validateSelectedApiKey();
@@ -172,9 +185,13 @@ document.getElementById('prompt').addEventListener('input', () => {
   updatePreview();
   updateDirtyState();
 });
+document.getElementById('promptImage').addEventListener('input', () => {
+  updateImagePreview();
+  updateDirtyState();
+});
 for (const k of keys) {
   const el = document.getElementById(k);
-  if (!el || k === 'prompt' || k === 'aiProvider') continue;
+  if (!el || k === 'prompt' || k === 'promptImage' || k === 'aiProvider') continue;
   el.addEventListener('input', updateDirtyState);
 }
 setInterval(() => {
