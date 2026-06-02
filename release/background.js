@@ -4,9 +4,10 @@ const DEFAULTS = {
   geminiApiKey: '',
   claudeApiKey: '',
   openaiModel: 'gpt-5.4-mini',
-  geminiModel: 'gemini-2.0-flash',
+  geminiModel: 'gemini-2.5-flash',
   claudeModel: 'claude-haiku-4-5-20251001',
-  prompt: ''
+  prompt: '',
+  promptImage: ''
 };
 
 let latestRunId = 0;
@@ -41,13 +42,36 @@ async function runPipeline(runId) {
       return;
     }
 
-    const clipboardText = await readClipboardText();
-    await debugStep('クリップボード読み取り完了', { preview: toPreview(clipboardText) });
-    if (!clipboardText || !clipboardText.trim()) return;
+    const clipItem = await readClipboard();
+    await debugStep('クリップボード読み取り完了', {
+      type: clipItem.type,
+      preview: clipItem.type === 'text' ? toPreview(clipItem.data) : `[${clipItem.mimeType || 'empty'}]`
+    });
+
+    if (clipItem.type === 'empty') return;
+
+    if (clipItem.type === 'text') {
+      if (!clipItem.data.trim()) return;
+      if (!settings.prompt || !settings.prompt.trim()) {
+        await showErrorPopup('テキスト用の指示プロンプトが設定されていません。オプションページで設定してください。');
+        return;
+      }
+    }
+
+    if (clipItem.type === 'image') {
+      if (!settings.promptImage || !settings.promptImage.trim()) {
+        await showErrorPopup('画像用の指示プロンプトが設定されていません。オプションページで設定してください。');
+        return;
+      }
+    }
 
     if (runId !== latestRunId) return;
-    const payload = buildPrompt(settings.prompt, clipboardText);
-    await debugStep('AIリクエスト作成完了', { payloadPreview: toPreview(payload) });
+
+    const payload = clipItem.type === 'image'
+      ? { type: 'image', prompt: buildImagePrompt(settings.promptImage), data: clipItem.data, mimeType: clipItem.mimeType }
+      : { type: 'text', prompt: buildTextPrompt(settings.prompt, clipItem.data) };
+
+    await debugStep('AIリクエスト作成完了', { type: payload.type, promptPreview: toPreview(payload.prompt) });
     const aiText = await askAI(settings, payload, runId);
     await debugStep('AI応答受信完了', { preview: toPreview(aiText) });
 
@@ -178,9 +202,6 @@ function validateSettings(settings) {
     if (!settings.claudeApiKey) return 'Claude APIキーが設定されていません。オプションページで設定してください。';
     if (!settings.claudeModel) return 'Claudeのモデル名が設定されていません。オプションページで設定してください。';
   }
-  if (!settings.prompt || !settings.prompt.trim()) {
-    return '指示プロンプトが設定されていません。オプションページで設定してください。';
-  }
   return null;
 }
 
@@ -266,8 +287,12 @@ function formatOpenAIError(status, detail = '') {
   return `OpenAI APIエラー: ${status}${normalized ? ` (${normalized})` : ''}`;
 }
 
-function buildPrompt(prompt, inputText) {
+function buildTextPrompt(prompt, inputText) {
   return `"入力テキスト"の内容に対して下記の"指示"を適用してください\n\n# 指示\n\n${prompt}\n\n# 入力テキスト\n\n${inputText}`;
+}
+
+function buildImagePrompt(prompt) {
+  return `下記の"指示"を画像に対して適用してください\n\n# 指示\n\n${prompt}`;
 }
 
 async function askAI(settings, payload, runId) {
@@ -284,9 +309,16 @@ async function askAI(settings, payload, runId) {
   throw new Error('使用AIの設定が不正です。');
 }
 
-async function callOpenAI(apiKey, model, content) {
+async function callOpenAI(apiKey, model, payload) {
   if (!apiKey) throw new Error('OpenAI APIキーが未設定です。');
   if (!model || !model.trim()) throw new Error('OpenAIモデル名が未設定です。');
+
+  const content = payload.type === 'image'
+    ? [
+        { type: 'image_url', image_url: { url: `data:${payload.mimeType};base64,${payload.data}` } },
+        { type: 'text', text: payload.prompt }
+      ]
+    : payload.prompt;
 
   const res = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
@@ -310,21 +342,37 @@ async function callOpenAI(apiKey, model, content) {
   return data?.choices?.[0]?.message?.content || '';
 }
 
-async function callGemini(apiKey, model, content) {
+async function callGemini(apiKey, model, payload) {
   if (!apiKey) throw new Error('Gemini APIキーが未設定です。');
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+
+  const parts = payload.type === 'image'
+    ? [
+        { inline_data: { mime_type: payload.mimeType, data: payload.data } },
+        { text: payload.prompt }
+      ]
+    : [{ text: payload.prompt }];
+
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: content }] }] })
+    body: JSON.stringify({ contents: [{ role: 'user', parts }] })
   });
   if (!res.ok) throw new Error(`Gemini APIエラー: ${res.status}`);
   const data = await res.json();
   return data?.candidates?.[0]?.content?.parts?.map((p) => p.text || '').join('') || '';
 }
 
-async function callClaude(apiKey, model, content) {
+async function callClaude(apiKey, model, payload) {
   if (!apiKey) throw new Error('Claude APIキーが未設定です。');
+
+  const content = payload.type === 'image'
+    ? [
+        { type: 'image', source: { type: 'base64', media_type: payload.mimeType, data: payload.data } },
+        { type: 'text', text: payload.prompt }
+      ]
+    : payload.prompt;
+
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -350,17 +398,45 @@ async function withTimeout(promise, ms, runId) {
   return result;
 }
 
-async function readClipboardText() {
+async function readClipboard() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (!tab?.id) throw new Error('アクティブタブを取得できません。');
   const [{ result }] = await chrome.scripting.executeScript({
     target: { tabId: tab.id },
     world: 'MAIN',
     func: async () => {
-      try { return await navigator.clipboard.readText(); } catch { return ''; }
+      try {
+        const items = await navigator.clipboard.read();
+        for (const item of items) {
+          const imageType = item.types.find(t => t.startsWith('image/'));
+          if (imageType) {
+            const blob = await item.getType(imageType);
+            const base64 = await new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result.split(',')[1]);
+              reader.onerror = reject;
+              reader.readAsDataURL(blob);
+            });
+            return { type: 'image', data: base64, mimeType: imageType };
+          }
+          if (item.types.includes('text/plain')) {
+            const blob = await item.getType('text/plain');
+            const text = await blob.text();
+            return { type: 'text', data: text };
+          }
+        }
+        return { type: 'empty' };
+      } catch {
+        try {
+          const text = await navigator.clipboard.readText();
+          return text ? { type: 'text', data: text } : { type: 'empty' };
+        } catch {
+          return { type: 'empty' };
+        }
+      }
     }
   });
-  return result || '';
+  return result || { type: 'empty' };
 }
 
 async function writeClipboardText(text) {

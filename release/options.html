@@ -49,12 +49,15 @@
     #status { color: #166534; }
     #dirtyState { color: #b91c1c; font-weight: 600; }
     .subtle { margin-top:8px;color:#374151;font-size:13px; }
-    #previewArea { min-height: 180px; background:#f9fafb; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .preview-area { min-height: 180px; background:#f9fafb; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
     .provider-group { border: 1px solid #d1d5db; border-radius: 10px; padding: 12px; margin-top: 12px; background: #f9fafb; }
     .provider-group.active { border-color: #2563eb; background: #eff6ff; box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.12); }
     .provider-group.inactive { opacity: 0.62; }
     .provider-title { margin: 0 0 6px; font-size: 14px; color: #111827; }
     .field-error { margin-top: 6px; color: #b91c1c; font-size: 13px; font-weight: 600; }
+    .prompt-block { border: 1px solid #d1d5db; border-radius: 10px; padding: 14px; margin-top: 16px; }
+    .prompt-block-title { margin: 0 0 2px; font-size: 15px; font-weight: 700; color: #111827; }
+    .prompt-block .subtle { margin-top: 2px; margin-bottom: 4px; }
   </style>
 </head>
 <body>
@@ -100,12 +103,23 @@
     <label>Claude モデル名<input id="claudeModel" type="text" /></label>
   </div>
 
-  <label>指示プロンプト<textarea id="prompt"></textarea></label>
+  <div class="prompt-block">
+    <p class="prompt-block-title">テキスト用 指示プロンプト</p>
+    <p class="subtle">クリップボードにテキストがある場合に使用されます。</p>
+    <label style="font-weight:normal"><textarea id="prompt" placeholder="例：日本語に翻訳してください"></textarea></label>
+    <label>送信プレビュー（テキストの場合）
+      <textarea id="previewArea" class="preview-area" readonly></textarea>
+    </label>
+  </div>
 
-
-  <label>AIへ最終送信されるプロンプト（プレビュー）
-    <textarea id="previewArea" readonly></textarea>
-  </label>
+  <div class="prompt-block">
+    <p class="prompt-block-title">画像用 指示プロンプト</p>
+    <p class="subtle">クリップボードに画像がある場合に使用されます。画像対応モデルを指定してください。</p>
+    <label style="font-weight:normal"><textarea id="promptImage" placeholder="例：この画像の内容を説明してください"></textarea></label>
+    <label>送信プレビュー（画像の場合）
+      <textarea id="previewImageArea" class="preview-area" readonly></textarea>
+    </label>
+  </div>
 
   <p class="subtle">OpenAI利用時に <code>429</code> が出る場合、課金上限・レート制限・モデル利用権限が原因のことがあります。</p>
 
