@@ -4,7 +4,7 @@ const DEFAULTS = {
   geminiApiKey: '',
   claudeApiKey: '',
   openaiModel: 'gpt-5.4-mini',
-  geminiModel: 'gemini-2.0-flash',
+  geminiModel: 'gemini-2.5-flash',
   claudeModel: 'claude-haiku-4-5-20251001',
   prompt: '',
   promptImage: ''
